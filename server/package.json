@@ -8,14 +8,22 @@
     "dev": "bun --watch src/index.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/pg": "^8.15.5",
+    "drizzle-kit": "^0.31.4",
+    "tsx": "^4.20.5"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.7.2",
+    "dotenv": "^17.2.2",
+    "drizzle-orm": "^0.44.5",
     "hono": "^4.9.7",
     "http-status-codes": "^2.3.0",
+    "jose": "^6.1.0",
+    "postgres": "^3.4.7",
     "zod": "^4.1.8"
   }
 }
