@@ -1,23 +1,36 @@
-# Use official Node.js image as base
-FROM node:20-alpine
+# Stage 1: Build
+FROM node:20-alpine AS build
 
-# Set working directory in container
+# Set working directory
 WORKDIR /app
 
-# Copy package files for dependency installation (cache layer)
+# Copy package files and install all dependencies (dev + prod)
 COPY package.json package-lock.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the source code
+# Copy source code
 COPY . .
 
-# Build the TypeScript project
+# Build the project (compile TypeScript)
 RUN npm run build
 
-# Expose the port your server listens on (default 3000, adjust if different)
+# Stage 2: Production image
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Only copy production node_modules from build stage
+COPY --from=build /app/node_modules ./node_modules
+
+# Copy the built JS files from build stage
+COPY --from=build /app/dist ./dist
+
+# Copy package.json if needed for metadata
+COPY --from=build /app/package.json .
+
+# Expose the app port (adjust if different)
 EXPOSE 3000
 
-# Start the server
-CMD ["npm", "start"]
+# Start the app
+CMD ["node", "dist/index.js"]
