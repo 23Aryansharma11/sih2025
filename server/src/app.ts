@@ -15,6 +15,6 @@ app.use(
   })
 );
 
-app.basePath("/api").route("/auth", authRoutes);
+app.basePath("/api").route("/auth", authRoutes)
 
 app.onError(errorHandler);
