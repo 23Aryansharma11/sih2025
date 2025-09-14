@@ -1,6 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import { email, z } from "zod";
+import { z } from "zod";
 import { db } from "../db";
 import { usersTable } from "../db/schema/user-schema";
 import { HTTPException } from "hono/http-exception";
@@ -16,6 +16,14 @@ const createUserSchema = z.object({
   avatar: z.string().nonempty(),
   fullname: z.string().min(3, "Fullname cannot be less than 3 characters"),
 });
+
+const adminLoginSchema = z.object({
+  username: z.string().nonempty(),
+  password: z.string().nonempty(),
+});
+
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 export type UserType = z.infer<typeof createUserSchema> & {
   id: number;
@@ -72,4 +80,21 @@ authRoutes.get("/user", jwtMiddleware, async (c: Context) => {
   }
 
   return c.json({ success: true, user }, StatusCodes.OK);
+});
+
+authRoutes.post("/admin", zValidator("json", adminLoginSchema), async (c) => {
+  const { username, password } = c.req.valid("json");
+
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    // Admin authenticated, create a token
+    const token = await signToken({ role: "admin", username });
+    return c.json(
+      { success: true, message: "Admin logged in", token },
+      StatusCodes.OK
+    );
+  } else {
+    throw new HTTPException(StatusCodes.UNAUTHORIZED, {
+      message: "Invalid admin credentials",
+    });
+  }
 });
